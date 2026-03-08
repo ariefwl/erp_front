@@ -1,0 +1,14 @@
+<template>
+  <CFooter class="px-4">
+    <div>
+      <a href="https://www.jansenfurniture.com" target="_blank">Jansen Indonesia</a>
+      <span class="ms-1"
+        >&copy; {{ new Date().getFullYear() }} IT Department.</span
+      >
+    </div>
+    <div class="ms-auto">
+      <span class="me-1" target="_blank">Powered by</span>
+      <a href="#">Arief Wicaksono</a>
+    </div>
+  </CFooter>
+</template>
