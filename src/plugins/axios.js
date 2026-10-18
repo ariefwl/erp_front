@@ -5,7 +5,8 @@ const token = Cookies.get('token');
 
 // axios.defaults.baseURL = 'http://127.0.0.1:8005/api'
 // axios.defaults.baseURL = 'https://103.255.240.205:8001/api'
-axios.defaults.baseURL = 'https://api.jansenindonesia.com/api'
+// axios.defaults.baseURL = 'https://api.jansenindonesia.com/api'
+axios.defaults.baseURL = 'http://localhost:8080/api'
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 axios.defaults.headers.common['Content-Type'] = 'multipart/form-data'
 axios.defaults.headers.common['Accept'] = 'application/json'

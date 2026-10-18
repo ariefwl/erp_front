@@ -117,7 +117,7 @@ onMounted(() => {
         </template>
         <template #title>Pemasukkan Bahan Baku {{ currentMonth }}</template>
         <template #action>
-          <router-link to="/report/pemasukkanBB" class="text-decoration-none text-white">
+          <router-link to="/kaber/pemasukanBB" class="text-decoration-none text-white">
             Details
           </router-link>
         </template>
@@ -333,7 +333,7 @@ onMounted(() => {
         </template>
         <template #title>Pengeluaran Hasil Produksi {{ currentMonth }}</template>
         <template #action>
-          <router-link to="/report/pengeluaranHP" class="text-decoration-none text-white">
+          <router-link to="/kaber/pengeluaranHP" class="text-decoration-none text-white">
             Details
           </router-link>
         </template>
@@ -414,7 +414,7 @@ onMounted(() => {
         </template>
         <template #title>Mutasi Bahan Baku {{ currentMonth }}</template>
         <template #action>
-          <router-link to="/report/mutasiBB" class="text-decoration-none text-white">
+          <router-link to="/kaber/mutasiBB" class="text-decoration-none text-white">
             Details
           </router-link>
         </template>

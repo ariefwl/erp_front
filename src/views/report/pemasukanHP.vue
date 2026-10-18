@@ -24,204 +24,228 @@
                 </CButton>
             </div>
 
-            <!-- Table -->
-            <div class="table-responsive text-nowrap">
-                <CTable hover bordered small>
-                    <CTableHead color="light" align="center">
-                        <CTableRow>
-                            <CTableHeaderCell>No</CTableHeaderCell>
-                            <CTableHeaderCell>No. Bukti Terima</CTableHeaderCell>
-                            <CTableHeaderCell>Tanggal</CTableHeaderCell>
-                            <CTableHeaderCell>Kode Barang</CTableHeaderCell>
-                            <CTableHeaderCell>Nama Barang</CTableHeaderCell>
-                            <CTableHeaderCell>Satuan</CTableHeaderCell>
-                            <CTableHeaderCell>Dari Produksi</CTableHeaderCell>
-                            <CTableHeaderCell>Sub Kontrak</CTableHeaderCell>
-                            <CTableHeaderCell>Dari Sub Kontrak</CTableHeaderCell>
-                            <CTableHeaderCell>Gudang</CTableHeaderCell>
-                        </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                        <CTableRow v-if="loading">
-                            <CTableDataCell colSpan="11" class="text-center">
-                                <CSpinner size="sm" color="primary" /> Loading data...
-                            </CTableDataCell>
-                        </CTableRow>
-
-                        <CTableRow v-else-if="finGoods.length === 0">
-                            <CTableDataCell colSpan="10" class="text-center">
-                                Tidak ada data
-                            </CTableDataCell>
-                        </CTableRow>
-
-                        <CTableRow v-else v-for="(item, index) in finGoods" :key="index">
-                            <CTableDataCell>{{ index + 1 }}</CTableDataCell>
-                            <CTableDataCell>{{ item.FGNo }}</CTableDataCell>
-                            <CTableDataCell>{{ formatDate(item.FGDate) }}</CTableDataCell>
-                            <CTableDataCell>{{ item.ItemCode }}</CTableDataCell>
-                            <CTableDataCell>{{ item.InvName }}</CTableDataCell>
-                            <CTableDataCell>{{ item.Unit }}</CTableDataCell>
-                            <CTableDataCell class="text-end">{{ formatNumber(item.Qty) }}</CTableDataCell>
-                            <CTableDataCell>{{ item.SubContract }}</CTableDataCell>
-                            <CTableDataCell>{{ item.SubConQty }}</CTableDataCell>
-                            <CTableDataCell>{{ item.WarehouseName }}</CTableDataCell>
-                        </CTableRow>
-                    </CTableBody>
-                </CTable>
-            </div>
+            <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
         </CCardBody>
     </CCard>  
 </template>
 
-<script setup>
-import { computed, ref } from 'vue'
-import { CButton, CCard, CCardBody, CCardHeader, CFormSelect, CSpinner, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/vue'
-import { formatDate, formatNumber, monthNames, generatePeriods } from '@/helpers/format'
-import CIcon from '@coreui/icons-vue'
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-import { axiosInstance } from "@/plugins/axios";
+<style>
+  @import 'datatables.net-dt';
+  @import 'datatables.net-responsive-dt';
+  @import 'datatables.net-select-dt';
+</style>
 
+<script setup lang="ts">
+    import { CButton, CCard, CCardBody, CCardHeader, CFormSelect, CSpinner, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/vue'
+    import { formatDate, formatNumber, monthNames, generatePeriods } from '@/helpers/format'
+    import { computed, ref, watch } from 'vue'
+    import CIcon from '@coreui/icons-vue'
+    import pdfMake from 'pdfmake/build/pdfmake';
+    import pdfFonts from 'pdfmake/build/vfs_fonts';
+    import { axiosInstance } from "@/plugins/axios";
+    import DataTable from "datatables.net-vue3"
+    import DataTablesCore from "datatables.net"
 
-pdfMake.vfs = pdfFonts;
+    import 'datatables.net-responsive';
+    import 'datatables.net-select';
 
-const currentYear = new Date().getFullYear()
-const currentMonth = new Date().getMonth() + 1 // bulan berjalan (1–12)
-const startYear = 2024 // tahun mulai seperti di PHP kamu
+    DataTable.use(DataTablesCore)
 
+    pdfMake.vfs = pdfFonts;
 
-const selectedPeriod = ref('') // format: YYYYMM
-const finGoods = ref([])
-const loading = ref(false)
+    const currentYear = new Date().getFullYear()
+    const currentMonth = new Date().getMonth() + 1 // bulan berjalan (1–12)
+    const startYear = 2025 // tahun mulai
 
-const periodLabel = computed(() => {
-  if (!selectedPeriod.value) return ''
-  const y = selectedPeriod.value.substring(0, 4)
-  const m = parseInt(selectedPeriod.value.substring(4, 6))
-  return `${monthNames[m - 1]} ${y}`
-})
+    const selectedPeriod = ref('') // format: YYYYMM
+    const finGoods = ref([])
 
-// set default periode ke bulan berjalan
-selectedPeriod.value = `${currentYear}${String(currentMonth).padStart(2, '0')}`
-fetchFGData()
+    const periodLabel = computed(() => {
+        if (!selectedPeriod.value) return ''
+        const y = selectedPeriod.value.substring(0, 4)
+        const m = parseInt(selectedPeriod.value.substring(4, 6))
+        return `${monthNames[m - 1]} ${y}`
+    })
 
-function onChangePeriod(e) {
-  selectedPeriod.value = e.target.value
-  fetchFGData()
-}
+    // set default periode ke bulan berjalan
+    selectedPeriod.value = `${currentYear}${String(currentMonth).padStart(2, '0')}`
 
-const groupedPeriods = computed(() => 
-  generatePeriods(startYear, currentYear, currentMonth)
-)
+    const tableRef = ref(null)
 
-async function fetchFGData() {
-    loading.value = true
-    try {
-        const url = selectedPeriod.value
-            ? `/fingoods/${selectedPeriod.value}`
-            : `/fingoods`
-        const res = await axiosInstance.get(url)
-        finGoods.value = res.data.data
-    } catch (error) {
-        console.error('fetch error', error)
-        finGoods.value = []
-    } finally {
-        loading.value = false
-    }
-}
-
-async function exportPDF() {
-    if (!selectedPeriod.value) {
-        alert('Silakan pilih periode terlebih dahulu!');
-        return;
+    function onChangePeriod(e) {
+        selectedPeriod.value = e.target.value
     }
 
-    const rows = finGoods.value.map((item,index) => [
-        { text: `${index + 1}` },
-        { text: item.FGNo },
-        { text: formatDate(item.FGDate) },
-        { text: item.ItemCode },
-        { text: item.InvName },
-        { text: item.Unit },
-        { text: formatNumber(item.Qty), alignment: 'right' },
-        { text: formatNumber(item.SubConQty),alignment: 'right' },
-        { text: item.WarehouseName }
-    ])
+    watch(selectedPeriod, () => {
+      if (tableRef.value) {
+        tableRef.value.dt.ajax.reload(null, true)
+      }
+    })
 
-    const doc = {
-        pageSize: 'A4',
-        pageOrientation: 'landscape',
-        pageMargins: [40, 60, 40, 40],
+    const groupedPeriods = computed(() => 
+        generatePeriods(startYear, currentYear, currentMonth)
+    )
 
-        // HEADER PDF
-        header: function () {
-            return {
-                margin: [20, 15],
-                stack: [
-                    { text: 'LAPORAN PEMASUKAN HASIL PRODUKSI', style: 'header' },
-                    { text: `Periode: ${periodLabel.value}`, style: 'subheader' },
-                ],
+    const columns = [
+
+      {
+        data: null,
+        title: "No",
+        render: function (data, type, row, meta) {
+          return meta.row + meta.settings._iDisplayStart + 1
+        }
+      },
+
+      { data: "FGNo", title: "No. Bukti Terima" },
+      { 
+        data: "FGDate", 
+        title: "Tanggal",
+        render: function (data) {
+            return formatDate(data)
+        }
+      },
+      { data: "ItemCode", title: "Kode Barang" },
+      { data: "inventory.InvName", title: "Nama Barang" },
+      { data: "Unit", title: "Satuan", className: "dt-right"  },
+      { 
+        data: "Qty", 
+        title: "Dari Produksi", 
+        className: "dt-right",
+        render: function (data) {
+            return formatNumber(data)
+        }  
+      },
+      { data: "SubContract", title: "Sub Kontrak" },
+      { data: "SubConQty", title: "Dari Sub Kontrak" },
+      { data: "WarehouseName", title: "Gudang" }
+    ]
+
+    const options = {
+
+      processing: true,
+      serverSide: true,
+      responsive: true,
+      select: true,
+
+      ajax: async (data, callback) => {
+
+        const page = data.start / data.length + 1
+        const perPage = data.length
+
+        try {
+
+          const res = await axiosInstance.get(`/fingoods`, {
+            params: {
+              period: selectedPeriod.value,
+              draw: data.draw,
+              start: data.start,
+              length: data.length,
+              search: data.search.value,
+              order: data.order
             }
-        },
-
-        footer: function (current, total) {
-            return {
-                margin: [20, 10],
-                columns: [
-                    { text: 'Dicetak: ' + new Date().toLocaleDateString('id-ID'), alignment: 'left' },
-                    { text: `Halaman ${current} dari ${total}`, alignment: 'right' },
-                ],
-                fontSize: 8
+          })
+          callback(res.data)
+        } catch (err) {
+          console.error(err)
+        }
+      }
+    }
+    
+    async function exportPDF() {
+        const res = await axiosInstance.get('/fingoods/export', {
+            params: {
+                period: selectedPeriod.value
             }
-        },
+        })
 
-        // CONTENT PDF
-        content: [
-            {
-                table: {
-                    headerRows: 2,
-                    widths: ['auto', 'auto', 'auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto'],
-                    body: [
-                        [
-                            { text: 'No', rowSpan: 2, style: 'tableHeader' },
-                            { text: 'Bukti Pengiriman', colSpan: 2, style: 'tableHeader' }, 
-                            {},
-                            { text: 'Kode', rowSpan: 2, style: 'tableHeader' },
-                            { text: 'Nama', rowSpan: 2, style: 'tableHeader' },
-                            { text: 'Satuan', rowSpan: 2, style: 'tableHeader' },
-                            { text: 'Jumlah', colSpan: 2, style: 'tableHeader' },
-                            {},    
-                            { text: 'Gudang', rowSpan: 2, style: 'tableHeader' },
-                        ],
-                        [
-                            {},
-                            { text: 'Nomor', style: 'tableHeader' },
-                            { text: 'Tanggal', style: 'tableHeader' },
-                            {},{},{},
-                            { text: 'dari Produksi', style: 'tableHeader' },
-                            { text: 'dari SubKontraktor', style: 'tableHeader' },
-                            {}
-                        ],    
-                        ...rows,
+        const data = res.data.data ?? res.data
+
+        const rows = data.map((item,index) => [
+            { text: `${index + 1}` },
+            { text: item.FGNo },
+            { text: formatDate(item.FGDate) },
+            { text: item.ItemCode },
+            { text: item.InvName },
+            { text: item.Unit },
+            { text: formatNumber(item.Qty), alignment: 'right' },
+            { text: formatNumber(item.SubConQty),alignment: 'right' },
+            { text: item.WarehouseName }
+        ])
+
+        const doc = {
+            pageSize: 'A4',
+            pageOrientation: 'landscape',
+            pageMargins: [40, 60, 40, 40],
+
+            // HEADER PDF
+            header: function () {
+                return {
+                    margin: [20, 15],
+                    stack: [
+                        { text: 'LAPORAN PEMASUKAN HASIL PRODUKSI', style: 'header' },
+                        { text: `Periode: ${periodLabel.value}`, style: 'subheader' },
                     ],
-                },
-                layout: 'HorizontalLines',
-                fontSize: 8
+                }
             },
-        ],
-        styles: {
-            header: { fontSize: 14, bold: true, alignment: 'center' },
-            subheader: { fontSize: 11, bold: true, alignment: 'center' },
-            tableHeader: {
-                bold: true,
-                fontSize: 8,
-                fillColor: "#eeeeee",
-                color: "black",
-                alignment: "center"
-            },
-        },
-    }
 
-    pdfMake.createPdf(doc).download(`Laporan Pemasukkan Hasil Produksi_${periodLabel.value}.pdf`);
-}
+            footer: function (current, total) {
+                return {
+                    margin: [20, 10],
+                    columns: [
+                        { text: 'Dicetak: ' + new Date().toLocaleDateString('id-ID'), alignment: 'left' },
+                        { text: `Halaman ${current} dari ${total}`, alignment: 'right' },
+                    ],
+                    fontSize: 8
+                }
+            },
+
+            // CONTENT PDF
+            content: [
+                {
+                    table: {
+                        headerRows: 2,
+                        widths: ['auto', 'auto', 'auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto'],
+                        body: [
+                            [
+                                { text: 'No', rowSpan: 2, style: 'tableHeader' },
+                                { text: 'Bukti Pengiriman', colSpan: 2, style: 'tableHeader' }, 
+                                {},
+                                { text: 'Kode', rowSpan: 2, style: 'tableHeader' },
+                                { text: 'Nama', rowSpan: 2, style: 'tableHeader' },
+                                { text: 'Satuan', rowSpan: 2, style: 'tableHeader' },
+                                { text: 'Jumlah', colSpan: 2, style: 'tableHeader' },
+                                {},    
+                                { text: 'Gudang', rowSpan: 2, style: 'tableHeader' },
+                            ],
+                            [
+                                {},
+                                { text: 'Nomor', style: 'tableHeader' },
+                                { text: 'Tanggal', style: 'tableHeader' },
+                                {},{},{},
+                                { text: 'dari Produksi', style: 'tableHeader' },
+                                { text: 'dari SubKontraktor', style: 'tableHeader' },
+                                {}
+                            ],    
+                            ...rows,
+                        ],
+                    },
+                    layout: 'HorizontalLines',
+                    fontSize: 8
+                },
+            ],
+            styles: {
+                header: { fontSize: 14, bold: true, alignment: 'center' },
+                subheader: { fontSize: 11, bold: true, alignment: 'center' },
+                tableHeader: {
+                    bold: true,
+                    fontSize: 8,
+                    fillColor: "#eeeeee",
+                    color: "black",
+                    alignment: "center"
+                },
+            },
+        }
+
+        pdfMake.createPdf(doc).download(`Laporan Pemasukkan Hasil Produksi_${periodLabel.value}.pdf`);
+    }
 </script>

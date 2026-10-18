@@ -8,11 +8,26 @@ export function formatDate(dateStr) {
 }
 
 export function formatNumber(num) {
-  if (num == null) return ''
-  return Number(num).toLocaleString('id-ID', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })
+  if (num === null || num === undefined || num === '') return ''
+
+    const value = Number(num)
+
+    if (isNaN(value)) return ''
+
+    return value.toLocaleString('id-ID', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })
+}
+
+export function formatDatee(value) {
+    if (!value) return ''
+
+    // ambil YYYY-MM-DD saja
+    const date = value.slice(0, 10)
+
+    // YYYY-MM-DD -> DD-MM-YYYY
+    return date.split('-').reverse().join('-')
 }
 
 export function formatPeriod(period) {
@@ -23,6 +38,36 @@ export function formatPeriod(period) {
     'Juli','Agustus','September','Oktober','November','Desember'
   ]
   return `${monthNames[month - 1]} ${year}`
+}
+
+export function generateColumns(columns) {
+    return columns.map(col => {
+
+        if (col.type === 'rownum') {
+            return {
+                ...col,
+                formatter: (row, index) => {
+                    return (params.current_page - 1) * params.pagesize + index + 1
+                }
+            }
+        }
+        
+        if (col.type === 'date') {
+            return {
+                ...col,
+                formatter: (row) => formatDatee(row[col.field])
+            }
+        }
+
+        if (col.type === 'number'){
+           return {
+                ...col,
+                formatter: (row) => formatNumber(row[col.field])
+           }
+        }
+
+        return col
+    })
 }
 
 export const monthNames = [

@@ -11,7 +11,7 @@ export default [
   },
   {
     component: 'CNavTitle',
-    name: 'laporan bea cukai',
+    name: 'CUSTOMS report',
   },
   {
     component: 'CNavGroup',
@@ -54,6 +54,39 @@ export default [
         name: 'Penyelesaian Waste',
         to: '/report/waste',
       },
+    ]
+  },
+  {
+    component: 'CNavGroup',
+    name: 'Bounded Zone Report',
+    to: '/kaber',
+    icon: 'cil-notes',
+    items: [
+        {
+          component: 'CNavItem',
+          name: 'Pemasukan Bahan Baku',
+          to: '/kaber/pemasukanBB',
+        },
+        {
+          component: 'CNavItem',
+          name: 'Pengeluaran Hasil Produksi',
+          to: '/kaber/pengeluaranHP',
+        },
+        {
+          component: 'CNavItem',
+          name: 'Mutasi Bahan Baku',
+          to: '/kaber/mutasiBB',
+        },
+        {
+          component: 'CNavItem',
+          name: 'Posisi Barang Dalam Proses',
+          to: '/kaber/wip',
+        },
+        {
+          component: 'CNavItem',
+          name: 'Mutasi Hasil Produksi',
+          to: '/kaber/mutasiHP',
+        },
     ]
   },
   {

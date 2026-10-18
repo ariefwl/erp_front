@@ -74,6 +74,48 @@ const routes = [
         ],
       },
       {
+        path: '/kaber',
+        name: 'Kaber',
+        component: {
+          render() {
+            return h(resolveComponent('router-view'))
+          },
+        },
+        redirect: '/base/breadcrumbs',
+        children: [
+          {
+            path: '/kaber/pemasukanBB',
+            name: 'PemasukanBB',
+            meta: { requiresAuth: true },
+            component: () => import('@/views/kaber/pemasukanBB.vue'),
+          },
+          {
+            path: '/kaber/pengeluaranHP',
+            name: 'PengeluaranHP',
+            meta: { requiresAuth: true },
+            component: () => import('@/views/kaber/pengeluaranHP.vue'),
+          },
+          {
+            path: '/kaber/mutasiBB',
+            name: 'MutasiBB',
+            meta: { requiresAuth: true },
+            component: () => import('@/views/kaber/mutasiBB.vue'),
+          },
+          {
+            path: '/kaber/wip',
+            name: 'WIP',
+            meta: { requiresAuth: true },
+            component: () => import('@/views/kaber/wip.vue'),
+          },
+          {
+            path: '/kaber/mutasiHP',
+            name: 'MutasiHP',
+            meta: { requiresAuth: true },
+            component: () => import('@/views/kaber/mutasiHP.vue'),
+          },
+        ]
+      },
+      {
         path: '/masterdata',
         name: 'Master Data',
         component: {
