@@ -192,9 +192,9 @@ onMounted(() => {
           > {{ totalMatUse }} Item
           <!-- <span class="fs-6 fw-normal"> (40.9% <CIcon icon="cil-arrow-top" />) </span> -->
         </template>
-        <template #title>Pemakaian Bahan Baku {{ currentMonth }}</template>
+        <template #title>Posisi Barang Dalam Proses {{ currentMonth }}</template>
         <template #action>
-          <router-link to="/report/pemakaianBB" class="text-decoration-none text-white">
+          <router-link to="/kaber/wip" class="text-decoration-none text-white">
             Details
           </router-link>
         </template>
@@ -268,9 +268,9 @@ onMounted(() => {
           > {{ totalFinGoods }} Item
           <!-- <span class="fs-6 fw-normal"> (84.7% <CIcon icon="cil-arrow-top" />) </span> -->
         </template>
-        <template #title>Pemasukkan Hasil Produksi {{ currentMonth }}</template>
+        <template #title>Mutasi Barang Modal {{ currentMonth }}</template>
         <template #action>
-          <router-link to="/report/pemasukanHP" class="text-decoration-none text-white">
+          <router-link to="/kaber/mutasiBM" class="text-decoration-none text-white">
             Details
           </router-link>
         </template>
@@ -495,7 +495,7 @@ onMounted(() => {
         </template>
         <template #title>Mutasi Hasil Produksi {{ currentMonth }}</template>
         <template #action>
-          <router-link to="/report/mutasiHP" class="text-decoration-none text-white">
+          <router-link to="/kaber/mutasiHP" class="text-decoration-none text-white">
             Details
           </router-link>
         </template>
@@ -574,9 +574,9 @@ onMounted(() => {
           > {{ totalWaste }} Item
           <!-- <span class="fs-6 fw-normal"> (-23.6% <CIcon icon="cil-arrow-bottom" />) </span> -->
         </template>
-        <template #title>Penyelesaian Waste / Scrape {{ currentMonth }}</template>
+        <template #title>Mutasi Barang Reject dan Scrape {{ currentMonth }}</template>
         <template #action>
-          <router-link to="/report/waste" class="text-decoration-none text-white">
+          <router-link to="/kaber/mutasiBR" class="text-decoration-none text-white">
             Details
           </router-link>
         </template>

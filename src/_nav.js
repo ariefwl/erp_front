@@ -87,6 +87,16 @@ export default [
           name: 'Mutasi Hasil Produksi',
           to: '/kaber/mutasiHP',
         },
+        {
+          component: 'CNavItem',
+          name: 'Mutasi Barang Modal',
+          to: '/kaber/mutasiBM',
+        },
+        {
+          component: 'CNavItem',
+          name: 'Mutasi Barang Reject',
+          to: '/kaber/mutasiBR',
+        },
     ]
   },
   {

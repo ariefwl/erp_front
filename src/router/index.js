@@ -113,6 +113,18 @@ const routes = [
             meta: { requiresAuth: true },
             component: () => import('@/views/kaber/mutasiHP.vue'),
           },
+          {
+            path: '/kaber/mutasiBM',
+            name: 'MutasiBM',
+            meta: { requiresAuth: true },
+            component: () => import('@/views/kaber/mutasiBM.vue'),
+          },
+          {
+            path: '/kaber/mutasiBR',
+            name: 'MutasiBR',
+            meta: { requiresAuth: true },
+            component: () => import('@/views/kaber/mutasiBR.vue'),
+          },
         ]
       },
       {
