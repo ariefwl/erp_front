@@ -27,15 +27,17 @@
             </div>
 
             <!-- Table -->
-            <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+             <div class="table-wrapper">
+                 <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+             </div>
         </CCardBody>
     </CCard>
 </template>
 
 <style>
   @import 'datatables.net-dt';
-  @import 'datatables.net-responsive-dt';
   @import 'datatables.net-select-dt';
+  @import '@/styles/datatable-scroll.css';
 </style>
 
 <script setup lang="ts">
@@ -48,7 +50,6 @@
     import { computed, ref, watch } from 'vue';
     import { generatePeriods, monthNames, formatDate, formatNumber } from '@/helpers/format.js';
 
-    import 'datatables.net-responsive';
     import 'datatables.net-select';
 
     DataTable.use(DataTablesCore)
@@ -100,7 +101,7 @@
                 return meta.row + meta.settings._iDisplayStart + 1
             }
         },
-        { data: "PartNo", title: "Kode Barang"},
+        { data: "PartNo", title: "Kode Barang", orderable: true},
         { data: "InvName", title: "Nama Barang"},
         { data: "Unit", title: "Satuan"},
         { data: "Qty", title: "Quantity"},
@@ -110,7 +111,7 @@
     const options = {
         processing: true,
         serverSide: true,
-        responsive: true,
+        scrollX: true,
         select: true,
 
         ajax: async (data, callback) => {

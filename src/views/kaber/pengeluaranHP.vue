@@ -26,7 +26,9 @@
             </div>
 
             <!-- Table -->
-            <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+             <div class="table-wrapper">
+                 <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+             </div>
         </CCardBody>
     </CCard>
 </template>
@@ -34,8 +36,8 @@
 
 <style>
   @import 'datatables.net-dt';
-  @import 'datatables.net-responsive-dt';
   @import 'datatables.net-select-dt';
+  @import '@/styles/datatable-scroll.css';
 </style>
 
 <script setup lang="ts">
@@ -48,7 +50,6 @@
     import { computed, ref, watch } from 'vue';
     import { generatePeriods, monthNames, formatDate, formatNumber } from '@/helpers/format.js';
 
-    import 'datatables.net-responsive';
     import 'datatables.net-select';
 
     DataTable.use(DataTablesCore)
@@ -110,14 +111,14 @@
         { data: "Qty", title: "Jumlah"},
         { data: "Unit", title: "Satuan"},
         { data: "Currency", title: "Mata Uang"},
-        { data: "Up", title: "Harga Satuan"},
-        { data: "Amount", title: "Nilai Barang"}
+        { data: "Up", title: "Harga Satuan", className: 'text-end', render: function (data: any) { return formatNumber(data) }},
+        { data: "Amount", title: "Nilai Barang", className: 'text-end',render: function (data: any) { return formatNumber(data) }}
     ]
 
     const options = {
         processing: true,
         serverSide: true,
-        responsive: true,
+        scrollX: true,
         select: true,
 
         ajax: async (data, callback) => {

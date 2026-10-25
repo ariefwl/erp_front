@@ -13,17 +13,17 @@ axios.defaults.headers.common['Accept'] = 'application/json'
 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
 axios.interceptors.request.use(
-    config => {
-        const token = Cookies.get('token')
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`
-        }
-
-        return config
-    }, 
-    (error) => {
-        return Promise.reject(error)
+  config => {
+    const token = Cookies.get('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
     }
+
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
 )
 
 // Response interceptor untuk handle token expired

@@ -27,15 +27,17 @@
             </div>
 
             <!-- Table -->
-            <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+             <div class="text-wrapper">
+                 <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+             </div>
         </CCardBody>
     </CCard>
 </template>
 
 <style>
   @import 'datatables.net-dt';
-  @import 'datatables.net-responsive-dt';
   @import 'datatables.net-select-dt';
+  @import '@/styles/datatable-scroll.css';
 </style>
 
 <script setup lang="ts">
@@ -48,7 +50,6 @@
     import { computed, ref, watch } from 'vue';
     import { generatePeriods, monthNames, formatDate, formatNumber } from '@/helpers/format.js';
 
-    import 'datatables.net-responsive';
     import 'datatables.net-select';
 
     DataTable.use(DataTablesCore)
@@ -102,19 +103,19 @@
         },
         { data: "PartNo", title: "Kode Barang"},
         { data: "InvName", title: "Nama Barang"},
-        { data: "Begin", title: "Saldo Awal"},
-        { data: "In", title: "Pemasukan"},
-        { data: "Out", title: "Pengeluaran"},
+        { data: "Begin", title: "Saldo Awal", render: function (data: any) { return formatNumber(data) }},
+        { data: "In", title: "Pemasukan", render: function (data: any) { return formatNumber(data) }},
+        { data: "Out", title: "Pengeluaran", render: function (data: any) { return formatNumber(data) }},
         { data: "Unit", title: "Satuan"},
-        { data: "Adjustment", title: "Penyesuaian"},
-        { data: "Ending", title: "Saldo Akhir"},
-        { data: "Variance", title: "Selisih"},
+        { data: "Adjustment", title: "Penyesuaian", render: function (data: any) { return formatNumber(data) }},
+        { data: "Ending", title: "Saldo Akhir", render: function (data: any) { return formatNumber(data) }},
+        { data: "Variance", title: "Selisih", render: function (data: any) { return formatNumber(data) }},
     ]
 
     const options = {
         processing: true,
         serverSide: true,
-        responsive: true,
+        scrollX: true,
         select: true,
 
         ajax: async (data, callback) => {

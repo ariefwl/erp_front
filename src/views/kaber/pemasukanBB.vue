@@ -23,22 +23,33 @@
                 <CButton color="primary" class="ms-3" @click="exportPDF" :disabled="!selectedPeriod">
                 <CIcon icon="cil-cloud-download" /> Download
                 </CButton>
+
+                <label class="me-2 fw-semibold ms-3">Gudang:</label>
+                <CFormSelect v-model="selectedWare" class="w-auto" @change="onChangeWare">
+                    <option value="">-- Semua Gudang --</option>
+                    <option v-for="ware in warehouses" :key="ware.WareId" :value="String(ware.WareId)">{{ ware.WarehouseName }}</option>
+                </CFormSelect>
             </div>
 
             <!-- Table -->
-            <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+            <div class="table-wrapper">
+                <DataTable ref="tableRef" :columns="columns" :options="options" class="display nowrap" width="100%"></DataTable>
+            </div>
         </CCardBody>
     </CCard>
 </template>
 
 <style>
   @import 'datatables.net-dt';
-  @import 'datatables.net-responsive-dt';
   @import 'datatables.net-select-dt';
+  @import '@/styles/datatable-scroll.css';
+</style>
+
+<style>
 </style>
 
 <script setup lang="ts">
-    import { ref, computed, watch } from 'vue';
+    import { ref, computed, watch, onMounted } from 'vue';
     import { generatePeriods, monthNames, formatDate, formatNumber } from '@/helpers/format.js';
     import pdfMake from 'pdfmake/build/pdfmake';
     import pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -46,10 +57,10 @@
     import DataTable from "datatables.net-vue3";
     import DataTablesCore from "datatables.net";
 
-    import 'datatables.net-responsive';
     import 'datatables.net-select';
     import { data } from 'autoprefixer';
-    import { CCard, CCardHeader } from '@coreui/vue';
+    import { CButton, CCard, CCardHeader, CFormSelect } from '@coreui/vue';
+    import CIcon from '@coreui/icons-vue';
 
     DataTable.use(DataTablesCore)
 
@@ -62,6 +73,18 @@
     const selectedPeriod = ref('') // format: YYYYMM
     const purchases = ref([])
     const loading = ref(false)
+
+    const warehouses = ref([])
+    const selectedWare = ref('')
+
+    const getWarehouses = async () => {
+        try {
+            const response = await axiosInstance.get('/warehouse-kb')
+            warehouses.value = response.data.data
+        } catch (error){
+            console.error('Gagal Mengabil Data Gudang', error)
+        }
+    }
 
     const periodLabel = computed(() => {
         if (!selectedPeriod.value) return ''
@@ -107,7 +130,6 @@
             title: "Tgl. PIB",
             render: function (data: any) { return formatDate(data) }
         },
-        { data: "SerialNo",title: "No. Seri" },
         { data: "GRNo",title: "No. BTB" },
         {
             data: "GRDate",
@@ -117,20 +139,22 @@
         { data: 'Supplier Name', title: 'Supplier', defaultContent: '-' },
         { data: 'PartNo', title: 'Kode Barang'},
         { data: 'InvName', title: 'Nama Barang'},
-        { data: 'Qty', title: 'Qty'},
+        { data: 'Qty', title: 'Qty', render: function (data: any) { return formatNumber(data) }},
         { data: 'Unit', title: 'Satuan'},
         { data: 'Currency', title: 'Mata Uang'},
-        { data: 'Amount', title: 'Nilai Barang'},
-        { data: 'Up', title: 'Harga Satuan'},
-        { data: 'Rate', title: 'Rate'},
-        { data: 'ConUp', title: 'Harga Satuan Konversi'},
-        { data: 'ConAmount', title: 'Nilai Barang Konversi'}
+        { data: 'Amount', title: 'Nilai Barang', className: 'text-end',render: function (data: any) { return formatNumber(data) }},
+        { data: 'Up', title: 'Harga Satuan', className: 'text-end',render: function (data: any) { return formatNumber(data) }},
+        { data: 'Rate', title: 'Rate', className: 'text-end',render: function (data: any) { return formatNumber(data) }},
+        { data: 'ConUp', title: 'Harga Satuan Konversi', className: 'text-end',render: function (data: any) { return formatNumber(data) }},
+        { data: 'ConAmount', title: 'Nilai Barang Konversi', className: 'text-end',render: function (data: any) { return formatNumber(data) }},
+        { data: 'InvNo', title: 'InvNo'},
+        { data: 'Warehouse Name', title:'Gudang', defaultContent: '-'}
     ]
 
     const options = {
         processing: true,
         serverSide: true,
-        responsive: true,
+        scrollX: true,
         select: true,
 
         ajax: async (data, callback) => {
@@ -138,6 +162,8 @@
                 const res = await axiosInstance.get(`/purchase-kb`, {
                     params: {
                         period: selectedPeriod.value,
+                        wareId: selectedWare.value,
+
                         draw:   data.draw,
                         start:  data.start,
                         length: data.length,
@@ -152,6 +178,15 @@
                 callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] })
             }
         }
+    }
+
+    onMounted(() => {
+        getWarehouses()
+    })
+
+    const onChangeWare = () => {
+        // alert(selectedWare.value);
+        tableRef.value?.dt?.ajax.reload()
     }
 
 </script>
