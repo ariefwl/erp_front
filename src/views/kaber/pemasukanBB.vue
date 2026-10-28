@@ -49,7 +49,7 @@
 </style>
 
 <script setup lang="ts">
-    import { ref, computed, watch, onMounted } from 'vue';
+    import { ref, computed, watch, onMounted, nextTick } from 'vue';
     import { generatePeriods, monthNames, formatDate, formatNumber } from '@/helpers/format.js';
     import pdfMake from 'pdfmake/build/pdfmake';
     import pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -148,6 +148,7 @@
         { data: 'ConUp', title: 'Harga Satuan Konversi', className: 'text-end',render: function (data: any) { return formatNumber(data) }},
         { data: 'ConAmount', title: 'Nilai Barang Konversi', className: 'text-end',render: function (data: any) { return formatNumber(data) }},
         { data: 'InvNo', title: 'InvNo'},
+        { data: 'TaxNo', title: 'NPWP'},
         { data: 'Warehouse Name', title:'Gudang', defaultContent: '-'}
     ]
 
@@ -180,12 +181,133 @@
         }
     }
 
+    // Cetak PDF
+    async function exportPDF() {
+        if (!selectedPeriod.value) {
+            alert('Silakan pilih periode terlebih dahulu!');
+            return;
+        }
+
+        // Fetch semua data tanpa paginasi (purchases.value tidak diisi oleh DataTable serverSide)
+        let allData = []
+        try {
+            const res = await axiosInstance.get('/purchase-kb', {
+                params: {
+                    period: selectedPeriod.value,
+                    wareId: selectedWare.value,
+                    draw: 1,
+                    start: 0,
+                    length: -1,   // ambil semua data
+                    search: '',
+                    'order[0][column]': 3,
+                    'order[0][dir]': 'asc',
+                }
+            })
+            allData = res.data.data ?? []
+        } catch (err) {
+            console.error('Gagal mengambil data untuk PDF:', err)
+            alert('Gagal mengambil data. Silakan coba lagi.')
+            return
+        }
+
+        const rows = allData.map((item: any, index: number) => [
+            { text: `${index + 1}` },
+            { text: item.DocType ?? '-' },
+            { text: item.PIBNo ?? '-' },
+            { text: formatDate(item.PIBDate) },
+            { text: item.GRNo ?? '-' },
+            { text: formatDate(item.GRDate) },
+            { text: item.PartNo ?? '-' },
+            { text: item.InvName ?? '-' },
+            { text: item.Unit ?? '-' },
+            { text: formatNumber(item.Qty) },
+            { text: item.Currency ?? '-' },
+            { text: formatNumber(item.Amount) },
+            { text: item['Warehouse Name'] ?? '-' },
+        ])
+
+        const doc: any = {
+            pageSize: 'A4',
+            pageOrientation: 'landscape',
+            pageMargins: [40, 70, 40, 40],
+
+            header: function () {
+                return {
+                    margin: [20, 15],
+                    stack: [
+                        { text: 'PT. JANSEN INDONESIA', style: 'header'},
+                        { text: 'Laporan Pemasukan Bahan Baku', style: 'header'},
+                        { text: `Periode : ${periodLabel.value}`, style: 'subheader'},
+                    ],
+                }
+            },
+
+            footer: function(currentPage, pageCount) {
+                return {
+                    margin: [20, 10],
+                    columns: [
+                        { text: `Dicetak : ` + new Date().toLocaleDateString('id-ID'), alignment: 'left'},
+                        { text: `Halaman ${currentPage} dari ${pageCount}`, alignment: 'right'},
+                    ],
+                    fontSize: 8
+                }
+            },
+
+            content: [
+                {
+                    table: {
+                        headerRows: 3,
+                        widths: ['auto','auto','auto','auto','auto','auto','auto','auto','auto','auto','auto','auto','auto'],
+                        body: [
+                            [
+                                { text: 'No', style: 'tableHeader'},
+                                { text: 'Jenis Dokumen', style: 'tableHeader'},
+                                { text: 'No. PIB', style: 'tableHeader'},
+                                { text: 'Tgl. PIB', style: 'tableHeader'},
+                                { text: 'No. BTB', style: 'tableHeader'},
+                                { text: 'Tgl. BTB', style: 'tableHeader'},
+                                { text: 'Kode Barang', style: 'tableHeader'},
+                                { text: 'Nama Barang', style: 'tableHeader'},
+                                { text: 'Unit', style: 'tableHeader'},
+                                { text: 'Qty', style: 'tableHeader'},
+                                { text: 'Mata Uang', style: 'tableHeader'},
+                                { text: 'Nilai Barang', style: 'tableHeader'},
+                                { text: 'Gudang', style: 'tableHeader'}
+                            ],
+                            ...rows,
+                        ],
+                    },
+                    layout: {
+                        fillColor: function (rowIndex, node, columnIndex) {
+                        // warna header
+                        return (rowIndex === 0 || rowIndex === 1) ? '#eeeeee' : null
+                        }
+                    },
+                    fontSize: 8
+                },
+            ],
+            styles: {
+                header: { fontSize: 14, bold: true, alignment: "center" },
+                subheader: { fontSize: 11, alignment: "center", margin: [0, 2] },
+                tableHeader: {
+                    bold: true,
+                    fontSize: 8,
+                    fillColor: "#eeeeee",
+                    color: "black",
+                    alignment: "center"
+                }
+            }
+        };
+
+        pdfMake.createPdf(doc as any).download(`Pemasukan Bahan Baku_${periodLabel.value}.pdf`);
+    }
+
     onMounted(() => {
         getWarehouses()
     })
 
-    const onChangeWare = () => {
-        // alert(selectedWare.value);
+    const onChangeWare = async () => {
+        await nextTick()
         tableRef.value?.dt?.ajax.reload()
     }
 

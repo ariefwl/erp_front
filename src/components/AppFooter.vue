@@ -6,9 +6,9 @@
         >&copy; {{ new Date().getFullYear() }} IT Department.</span
       >
     </div>
-    <div class="ms-auto">
+    <!-- <div class="ms-auto">
       <span class="me-1" target="_blank">Powered by</span>
       <a href="#">Arief Wicaksono</a>
-    </div>
+    </div> -->
   </CFooter>
 </template>
